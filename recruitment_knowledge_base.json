@@ -1,28 +1,58 @@
 {
-    "job_role": "Software Engineer",
-    "required_skills": [
-        "Python",
-        "SQL",
-        "Git",
-        "REST API"
-    ],
-    "preferred_skills": [
-        "Docker",
-        "AWS",
-        "Linux"
-    ],
-    "minimum_experience": 2,
-    "education": [
-        "B.Tech",
-        "B.E.",
-        "M.Tech"
-    ],
+  "Software Engineer": {
     "weights": {
-        "Skills": 40,
-        "Experience": 25,
-        "Education": 15,
-        "Projects": 10,
-        "Certifications": 5,
-        "Soft_Skills": 5
-    }
+      "Skills": 40,
+      "Experience": 25,
+      "Education": 15,
+      "Projects": 10,
+      "Certifications": 5,
+      "Soft_Skills": 5
+    },
+
+    "required_skills": [
+      "Python",
+      "SQL",
+      "Git",
+      "REST API"
+    ],
+
+    "preferred_skills": [
+      "Docker",
+      "AWS",
+      "Linux"
+    ],
+
+    "minimum_experience": 2,
+
+    "education": [
+      "B.Tech",
+      "B.E.",
+      "M.Tech"
+    ],
+
+    "project_keywords": [
+      "project",
+      "developed",
+      "implemented",
+      "built",
+      "created",
+      "application",
+      "system",
+      "model"
+    ],
+
+    "certification_keywords": [
+      "certification",
+      "certificate",
+      "certified"
+    ],
+
+    "soft_skills": [
+      "communication",
+      "teamwork",
+      "leadership",
+      "problem solving",
+      "adaptability"
+    ]
+  }
 }
