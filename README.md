@@ -3,7 +3,6 @@
 ![Python](https://img.shields.io/badge/Python-3.11-blue)
 ![Streamlit](https://img.shields.io/badge/Streamlit-Web%20Application-red)
 ![Sentence-BERT](https://img.shields.io/badge/Sentence--BERT-Semantic%20Matching-green)
-![Machine Learning](https://img.shields.io/badge/Machine-Learning-orange)
 ![SHAP](https://img.shields.io/badge/Explainable%20AI-SHAP-purple)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
@@ -12,7 +11,7 @@
 
 The **Explainable AI-Powered Recruitment Decision Support System (AI-RDSS)** is an intelligent recruitment platform designed to improve the transparency, fairness, and efficiency of candidate evaluation during the hiring process.
 
-Unlike traditional Applicant Tracking Systems (ATS), which primarily rely on keyword matching, this system performs **semantic resume-job matching** using **Sentence-BERT embeddings** and **Machine Learning**. The platform also incorporates **Explainable Artificial Intelligence (XAI)** techniques to provide transparent explanations for recruitment decisions, enabling recruiters to understand why a candidate receives a particular score.
+Unlike traditional Applicant Tracking Systems (ATS), which primarily rely on keyword matching, this system performs **semantic resume-job matching** using **Sentence-BERT embeddings**. The platform also incorporates **Explainable Artificial Intelligence (XAI)** techniques to provide transparent explanations for recruitment decisions, enabling recruiters to understand why a candidate receives a particular score.
 
 The system has been developed as an academic research prototype to demonstrate the application of Explainable AI in recruitment and decision support.
 
@@ -103,9 +102,6 @@ Semantic Similarity
 Feature Extraction
         │
         ▼
-Machine Learning Model
-        │
-        ▼
 Explainable AI (SHAP)
         │
         ▼
@@ -120,7 +116,6 @@ Recruiter Dashboard
 |-----------|------------|
 | Programming Language | Python |
 | Frontend | Streamlit |
-| Machine Learning | Scikit-learn |
 | NLP | Sentence-BERT |
 | Explainable AI | SHAP |
 | Data Handling | Pandas |
@@ -197,7 +192,7 @@ AI-Recruitment-System
 │     semantic_matching.py
 │     scoring.py
 │     explainability.py
-└──    report_generator.py
+└──   report_generator.py
 
 
 🔬 Methodology
@@ -213,14 +208,14 @@ The proposed methodology consists of the following stages:
 7. Feature Extraction
 8. Weighted Candidate Scoring
 9. Explainable AI using SHAP
-10. Candidate Ranking
-11. Recruiter Decision Support
+10.Candidate Ranking
+11.Recruiter Decision Support
 
 
 
 
 
-# 🌍 Research Contribution
+🌍 Research Contribution
 
 This project contributes to Explainable Artificial Intelligence in Human Resource Management by integrating semantic NLP techniques with transparent machine learning models to support fair and interpretable recruitment decisions.
 
@@ -228,7 +223,7 @@ The proposed framework aims to address limitations of conventional keyword-based
 
 ---
 
-# 🚀 Future Scope
+🚀 Future Scope
 
 Future enhancements may include:
 
@@ -275,7 +270,6 @@ Research Interests:
 - Explainable AI
 - Human Resource Analytics
 - Artificial Intelligence in Recruitment
-- Machine Learning
 - Industrial Relations
 - HR Technology
 
