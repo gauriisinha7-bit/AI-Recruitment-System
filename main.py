@@ -113,11 +113,11 @@ def analyze(file_name,text,role,mdl,threshold):
  w=role.get('weights',{}); total=sum(float(w.get(k,0)) for k in comps) or 100; contrib={k:round(v*float(w.get(k,0))/total,2) for k,v in comps.items()}; final=round(sum(contrib.values()),2)
  decision='Strongly Recommended' if final>=80 else 'Recommended' if final>=65 else 'Review Required' if final>=45 else 'Not Recommended'; stage='Technical and Managerial Interview' if final>=80 else 'Technical Interview' if final>=65 else 'Recruiter Review' if final>=45 else 'Do Not Progress'
  name,email,phone=basic(text,Path(file_name).stem)
- return {'Candidate_Name':name,'Email':email,'Phone':phone,'Resume_File':file_name,'Skills':skills,'Experience_Years':exp,'Education':edu,'Skill_Score':skill,'Experience_Score':exp_s,'Education_Score':edu_s,'Projects_Score':comps['Projects'],'Certification_Score':comps['Certifications'],'Soft_Skills_Score':comps['Soft_Skills'],'Final_Score':final,'Decision':decision,'Interview_Stage':stage,'Matched_Skills':matched,'Missing_Skills':missing,'Contributions':contrib}
+ return {'Candidate_Name':name,'Email':email,'Phone':phone,'Resume_File':file_name,'Skills':skills,'Experience_Years':exp,'Education':edu,'Skill_Score':skill,'Experience_Score':exp_s,'Education_Score':edu_s,'Projects_Score':comps['Projects'],'Certification_Score':comps['Certifications'],'Soft_Skills_Score':comps['Soft_Skills'],'Final_Score':final,'Decision':decision,'Interview_Stage':stage,'Matched_Skills':matched or [],'Missing_Skills':missing or [],'Contributions':contrib,'Required_Count':len(req),'Matched_Count':len(matched or []),'Missing_Count':len(missing or []),'Confidence':round(min(100.0,60+len(matched or [])*6+final*0.2),2)}
 
 def report_df(results):
  rows=[]
- for i,r in enumerate(results,1): rows.append({'Rank':i,'Candidate Name':r['Candidate_Name'],'Email':r['Email'],'Phone':r['Phone'],'Final Score':r['Final_Score'],'Decision':r['Decision'],'Interview Stage':r['Interview_Stage'],'Skill Score':r['Skill_Score'],'Experience Score':r['Experience_Score'],'Education Score':r['Education_Score'],'Projects Score':r['Projects_Score'],'Certification Score':r['Certification_Score'],'Soft Skills Score':r['Soft_Skills_Score'],'Matched Skills':'; '.join(x['Required Skill'] for x in r['Matched_Skills']),'Missing Skills':', '.join(r['Missing_Skills'])})
+ for i,r in enumerate(results,1): rows.append({'Rank':i,'Candidate Name':r['Candidate_Name'],'Email':r['Email'],'Phone':r['Phone'],'Final Score':r['Final_Score'],'Confidence':r.get('Confidence',0),'Decision':r['Decision'],'Interview Stage':r['Interview_Stage'],'Skill Score':r['Skill_Score'],'Experience Score':r['Experience_Score'],'Education Score':r['Education_Score'],'Projects Score':r['Projects_Score'],'Certification Score':r['Certification_Score'],'Soft Skills Score':r['Soft_Skills_Score'],'Matched Skills':'; '.join(x['Required Skill'] for x in r['Matched_Skills']),'Missing Skills':', '.join(r['Missing_Skills'])})
  return pd.DataFrame(rows)
 
 def feedback(c):
@@ -147,7 +147,7 @@ def pdf_bytes(results):
   story.append(Paragraph(f"Rank {i}: {c['Candidate_Name']}",styles['Heading2'])); data=[['Final Score',f"{c['Final_Score']:.2f}%"],['Decision',c['Decision']],['Interview Stage',c['Interview_Stage']],['Missing Skills',', '.join(c['Missing_Skills']) or 'None']]; t=Table(data,colWidths=[1.5*inch,5.2*inch]); t.setStyle(TableStyle([('BACKGROUND',(0,0),(0,-1),colors.HexColor('#E8EEF7')),('GRID',(0,0),(-1,-1),.5,colors.grey),('VALIGN',(0,0),(-1,-1),'TOP')])); story += [t,Spacer(1,.2*inch)]
  doc.build(story); return buf.getvalue()
 
-for key,default in {'results':[],'chat':[],'role_data':None}.items():
+for key,default in {'results':[],'chat':[],'role_data':None,'notes':{}}.items():
  if key not in st.session_state: st.session_state[key]=default
 
 with st.sidebar:
@@ -175,7 +175,7 @@ elif page=='Recruitment':
     mdl=model(); role_data=parse_jd(read_file(jd),kb[role]); st.session_state.role_data=role_data; out=[]; bar=st.progress(0)
     for i,f in enumerate(resumes): out.append(analyze(f.name,read_file(f),role_data,mdl,threshold)); bar.progress((i+1)/len(resumes))
     out.sort(key=lambda x:x['Final_Score'],reverse=True); st.session_state.results=out
-   st.success('Analysis completed.'); st.json({'required_skills':role_data.get('required_skills',[]),'minimum_experience':role_data.get('minimum_experience',0),'education':role_data.get('education',[])})
+   st.success('Analysis completed successfully.')
   except Exception as e: st.exception(e)
 elif page=='Analysis':
  header('Candidate Intelligence','Ranking and Analysis','Review scores, decisions, matched skills and missing requirements.')
@@ -185,9 +185,29 @@ elif page=='Analysis':
   df=report_df(r); st.dataframe(df[['Rank','Candidate Name','Final Score','Decision','Interview Stage','Skill Score','Experience Score','Education Score']],use_container_width=True,hide_index=True); st.bar_chart(df.set_index('Candidate Name')['Final Score'])
   for i,c in enumerate(r,1):
    with st.expander(f"Rank {i} - {c['Candidate_Name']} - {c['Final_Score']:.2f}%"):
-    cols=st.columns(4); cols[0].metric('Final Score',f"{c['Final_Score']:.2f}%"); cols[1].metric('Decision',c['Decision']); cols[2].metric('Experience',f"{c['Experience_Years']} years"); cols[3].metric('Next Stage',c['Interview_Stage']); x,y=st.columns(2)
-    with x: st.markdown('**Matched skills**'); st.dataframe(pd.DataFrame(c['Matched_Skills']),use_container_width=True,hide_index=True) if c['Matched_Skills'] else st.info('None matched above threshold.')
-    with y: st.markdown('**Missing skills**'); [st.write('- '+s) for s in c['Missing_Skills']] if c['Missing_Skills'] else st.success('No required skills missing.')
+    cols=st.columns(5); cols[0].metric('Final Score',f"{c['Final_Score']:.2f}%"); cols[1].metric('Confidence',f"{c.get('Confidence',0):.2f}%"); cols[2].metric('Decision',c['Decision']); cols[3].metric('Experience',f"{c['Experience_Years']} years"); cols[4].metric('Next Stage',c['Interview_Stage'])
+    counts=st.columns(3); counts[0].metric('Required Skills',c.get('Required_Count',0)); counts[1].metric('Matched Skills',c.get('Matched_Count',0)); counts[2].metric('Missing Skills',c.get('Missing_Count',0))
+    x,y=st.columns(2)
+    with x:
+     st.markdown('**Matched skills**')
+     matched=[item for item in (c.get('Matched_Skills') or []) if isinstance(item,dict)]
+     if matched:
+      st.dataframe(pd.DataFrame(matched),use_container_width=True,hide_index=True)
+     else:
+      st.info('No required skills matched above threshold.')
+    with y:
+     st.markdown('**Missing skills**')
+     missing=[s for s in (c.get('Missing_Skills') or []) if s]
+     if missing:
+      for s in missing:
+       st.write('- '+str(s))
+     else:
+      st.success('No required skills missing.')
+    note_key=c.get('Resume_File',c.get('Candidate_Name','candidate'))
+    note_value=st.text_area('Recruiter notes',value=st.session_state.notes.get(note_key,''),key=f'note_{i}')
+    if st.button('Save Notes',key=f'save_note_{i}',use_container_width=True):
+     st.session_state.notes[note_key]=note_value
+     st.success('Recruiter notes saved.')
 elif page=='Explainability':
  header('Explainable AI','SHAP and Feature Contributions','Inspect the factors influencing candidate scores.')
  r=st.session_state.results
@@ -196,16 +216,49 @@ elif page=='Explainability':
   idx=st.selectbox('Candidate',range(len(r)),format_func=lambda i:r[i]['Candidate_Name']); c=r[idx]; st.bar_chart(pd.DataFrame({'Feature':list(c['Contributions']),'Contribution':list(c['Contributions'].values())}).set_index('Feature'))
   if len(r)<2: st.warning('Analyze at least two candidates for a SHAP surrogate explanation.')
   else:
-   cols=['Skill_Score','Experience_Score','Education_Score','Projects_Score','Certification_Score','Soft_Skills_Score']; X=pd.DataFrame([[z[k] for k in cols] for z in r],columns=cols); y=pd.Series([z['Final_Score'] for z in r]); lm=LinearRegression().fit(X,y); values=shap.Explainer(lm,X)(X); import matplotlib.pyplot as plt; shap.plots.waterfall(values[idx],show=False); st.pyplot(plt.gcf(),bbox_inches='tight'); plt.close()
+   try:
+    cols=['Skill_Score','Experience_Score','Education_Score','Projects_Score','Certification_Score','Soft_Skills_Score']
+    X=pd.DataFrame([[float(z.get(k,0)) for k in cols] for z in r],columns=cols)
+    y=pd.Series([float(z.get('Final_Score',0)) for z in r])
+    lm=LinearRegression().fit(X,y)
+    values=shap.Explainer(lm,X)(X)
+    import matplotlib.pyplot as plt
+    shap.plots.waterfall(values[idx],show=False)
+    st.pyplot(plt.gcf(),bbox_inches='tight')
+    plt.close()
+   except Exception as e:
+    st.error(f'SHAP explanation could not be generated: {e}')
 elif page=='Candidate Feedback':
  header('Decision Support','Feedback and Interview Questions','Generate recruiter-facing strengths, weaknesses and questions.')
  r=st.session_state.results
  if not r: st.info('Run analysis first.')
  else:
-  idx=st.selectbox('Candidate',range(len(r)),format_func=lambda i:r[i]['Candidate_Name']); c=r[idx]; strengths,weaknesses=feedback(c); st.write(f"{c['Candidate_Name']} scored {c['Final_Score']:.2f}% and is {c['Decision']}. Suggested stage: {c['Interview_Stage']}."); a,b=st.columns(2)
-  with a: st.subheader('Strengths'); [st.write('- '+x) for x in strengths]
-  with b: st.subheader('Areas for review'); [st.write('- '+x) for x in weaknesses]
-  st.subheader('Interview questions'); qs=[f'Describe a project where you used {s}.' for s in c['Skills'][:4]]+[f'What exposure do you have to {s}?' for s in c['Missing_Skills'][:3]]+['Describe a difficult technical problem you solved.']; [st.write(f'{i}. {q}') for i,q in enumerate(qs,1)]
+  idx=st.selectbox('Candidate',range(len(r)),format_func=lambda i:r[i]['Candidate_Name'])
+  c=r[idx]
+  strengths,weaknesses=feedback(c)
+  strengths=[x for x in (strengths or []) if x]
+  weaknesses=[x for x in (weaknesses or []) if x]
+  st.write(f"{c['Candidate_Name']} scored {c['Final_Score']:.2f}% and is {c['Decision']}. Suggested stage: {c['Interview_Stage']}.")
+  a,b=st.columns(2)
+  with a:
+   st.subheader('Strengths')
+   if strengths:
+    for item in strengths:
+     st.write('- '+str(item))
+   else:
+    st.info('No strengths generated.')
+  with b:
+   st.subheader('Areas for review')
+   if weaknesses:
+    for item in weaknesses:
+     st.write('- '+str(item))
+   else:
+    st.info('No areas for review generated.')
+  st.subheader('Interview questions')
+  qs=[f'Describe a project where you used {s}.' for s in (c.get('Skills') or [])[:4]]+[f'What exposure do you have to {s}?' for s in (c.get('Missing_Skills') or [])[:3]]+['Describe a difficult technical problem you solved.']
+  qs=[q for q in qs if q]
+  for number,question in enumerate(qs,1):
+   st.write(f'{number}. {question}')
 elif page=='Recruiter Assistant':
  header('Recruiter Assistant','Ask About Results','Ask why a candidate ranked first, compare candidates, or identify missing skills.')
  for m in st.session_state.chat:
