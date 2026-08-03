@@ -1,0 +1,28 @@
+{
+    "job_role": "Software Engineer",
+    "required_skills": [
+        "Python",
+        "SQL",
+        "Git",
+        "REST API"
+    ],
+    "preferred_skills": [
+        "Docker",
+        "AWS",
+        "Linux"
+    ],
+    "minimum_experience": 2,
+    "education": [
+        "B.Tech",
+        "B.E.",
+        "M.Tech"
+    ],
+    "weights": {
+        "Skills": 40,
+        "Experience": 25,
+        "Education": 15,
+        "Projects": 10,
+        "Certifications": 5,
+        "Soft_Skills": 5
+    }
+}
